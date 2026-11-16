@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service 
+metadata:
+  name: mongo
+  namespace: crud 
+spec:
+  clusterIP: None #headless -> give pods DNS mongo-0.
+  selector:
+    app: mongo
+  ports:
+    - port: 27017
+---
+apiVersion: apps/v1 
+kind: Statefulset 
+metadata:
+  name: mongo
+  namespace: crud 
+spce: 
+  serviceName: mongo
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo 
+  template:
+    metadata:
+      labels:
+        app: mongo 
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:7
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: data
+              mountPath: /data/db 
+          resources:
+            requests: {cpu: 100m , memory: 256Mi}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path 
+        resources:
+          requests:
+            storage: 2Gi  
